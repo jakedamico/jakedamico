@@ -2,8 +2,6 @@
   <img src="hero.gif" alt="pink panther" width="900">
 </p>
 
-<br/><br/>
-
 <!-- Snake animation (auto theme) -->
 <picture>
   <source media="(prefers-color-scheme: dark)"
