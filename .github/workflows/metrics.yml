@@ -1,36 +1,33 @@
 name: Metrics (Languages)
 
 on:
-  schedule:
-    - cron: "0 0 * * *"   # daily at 00:00 UTC
-  workflow_dispatch: {}    # let you run it manually
+  schedule: [{ cron: "0 0 * * *" }]  # daily
+  workflow_dispatch: {}
 
 permissions:
-  contents: write
+  contents: write  # to push SVGs to the output branch
 
 jobs:
   languages:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate languages (light)
+      - name: Languages (light)
         uses: lowlighter/metrics@latest
         with:
-          token: ${{ secrets.METRICS_TOKEN }}
+          token: ${{ secrets.METRICS_TOKEN }}   # <-- REQUIRED
           filename: dist/languages.svg
-          base: ""                         # no header block
+          base: ""
           template: classic
           plugin_languages: yes
           plugin_languages_sections: most-used
           plugin_languages_indepth: yes
           plugin_languages_limit: 12
           plugin_languages_details: percentage, bytes-size
-          # optional: ignore noise languages
-          # plugin_languages_ignored: html, css
 
-      - name: Generate languages (dark)
+      - name: Languages (dark)
         uses: lowlighter/metrics@latest
         with:
-          token: ${{ secrets.METRICS_TOKEN }}
+          token: ${{ secrets.METRICS_TOKEN }}   # <-- REQUIRED
           filename: dist/languages-dark.svg
           base: ""
           template: classic
@@ -39,7 +36,6 @@ jobs:
           plugin_languages_indepth: yes
           plugin_languages_limit: 12
           plugin_languages_details: percentage, bytes-size
-          # optional: same ignores as above
 
       - name: Publish to output branch
         uses: crazy-max/ghaction-github-pages@v4
