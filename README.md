@@ -1,26 +1,25 @@
-<div align="left">
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" height="40" alt="javascript logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg" height="40" alt="angularjs logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" height="40" alt="cplusplus logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" height="40" alt="python logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" height="40" alt="csharp logo"  />
-</div>
+<!-- Top languages (auto theme) -->
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=jakedamico&layout=donut-vertical&langs_count=8&size_weight=0.5&count_weight=0.5&theme=dark"
+  />
+  <source
+    media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+    srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=jakedamico&layout=donut-vertical&langs_count=8&size_weight=0.5&count_weight=0.5"
+  />
+  <img alt="Jake's most used languages" height="200"
+       src="https://github-readme-stats.vercel.app/api/top-langs/?username=jakedamico&layout=donut-vertical&langs_count=8&size_weight=0.5&count_weight=0.5" />
+</picture>
 
-###
+<br/><br/>
 
-<br clear="both">
-
-<img src="https://raw.githubusercontent.com/jakedamico/jakedamico/output/snake.svg" alt="Snake animation" />
-
-
-###
-
-<div align="center">
-  <img src="https://profile-counter.glitch.me/jakedamico/count.svg?"  />
-</div>
-
-###
+<!-- Snake animation (auto theme) -->
+<picture>
+  <source media="(prefers-color-scheme: dark)"
+          srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/snake-dark.svg" />
+  <source media="(prefers-color-scheme: light)"
+          srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/snake.svg" />
+  <img alt="Snake animation"
+       src="https://raw.githubusercontent.com/jakedamico/jakedamico/output/snake.svg" />
+</picture>
