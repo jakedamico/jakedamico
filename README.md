@@ -1,16 +1,13 @@
-<!-- Top languages (auto theme) -->
+<!-- Most-used languages (auto theme) -->
 <picture>
-  <source
-    media="(prefers-color-scheme: dark)"
-    srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=jakedamico&layout=donut-vertical&langs_count=8&size_weight=0.5&count_weight=0.5&theme=dark"
-  />
-  <source
-    media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
-    srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=jakedamico&layout=donut-vertical&langs_count=8&size_weight=0.5&count_weight=0.5"
-  />
-  <img alt="Jake's most used languages" height="200"
-       src="https://github-readme-stats.vercel.app/api/top-langs/?username=jakedamico&layout=donut-vertical&langs_count=8&size_weight=0.5&count_weight=0.5" />
+  <source media="(prefers-color-scheme: dark)"
+          srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/languages-dark.svg" />
+  <source media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+          srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/languages.svg" />
+  <img alt="Most used languages across all projects"
+       src="https://raw.githubusercontent.com/jakedamico/jakedamico/output/languages.svg" />
 </picture>
+
 
 <br/><br/>
 
