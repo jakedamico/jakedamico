@@ -1,3 +1,9 @@
+<p align="center">
+  <img src="assets/hero.gif" alt="pink panther" width="900">
+</p>
+
+<br/><br/>
+
 <!-- Most-used languages (auto theme) -->
 <picture>
   <source media="(prefers-color-scheme: dark)"
