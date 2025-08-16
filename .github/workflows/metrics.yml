@@ -1,20 +1,23 @@
 name: Metrics (Languages)
 
 on:
-  schedule: [{ cron: "0 0 * * *" }]  # daily
+  schedule: [{ cron: "0 0 * * *" }]
   workflow_dispatch: {}
 
 permissions:
-  contents: write  # to push SVGs to the output branch
+  contents: write
 
 jobs:
   languages:
     runs-on: ubuntu-latest
     steps:
+      - name: Prep output dir
+        run: mkdir -p dist
+
       - name: Languages (light)
         uses: lowlighter/metrics@latest
         with:
-          token: ${{ secrets.METRICS_TOKEN }}   # <-- REQUIRED
+          token: ${{ secrets.METRICS_TOKEN }}
           filename: dist/languages.svg
           base: ""
           template: classic
@@ -27,7 +30,7 @@ jobs:
       - name: Languages (dark)
         uses: lowlighter/metrics@latest
         with:
-          token: ${{ secrets.METRICS_TOKEN }}   # <-- REQUIRED
+          token: ${{ secrets.METRICS_TOKEN }}
           filename: dist/languages-dark.svg
           base: ""
           template: classic
@@ -36,6 +39,9 @@ jobs:
           plugin_languages_indepth: yes
           plugin_languages_limit: 12
           plugin_languages_details: percentage, bytes-size
+
+      - name: Debug listing
+        run: ls -la dist || true
 
       - name: Publish to output branch
         uses: crazy-max/ghaction-github-pages@v4
