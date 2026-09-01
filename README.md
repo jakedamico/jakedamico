@@ -31,20 +31,21 @@
 <br/>
 
 <!-- =========================================================
-     lines of code — every repo, private included, counted and
-     drawn by scripts/loc-stats.js. refreshed daily (loc action)
+     lines committed this year — every repo, private included,
+     counted from git history and drawn by scripts/loc-stats.js.
+     refreshed daily (loc action)
      ========================================================= -->
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)"
             srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/loc-languages-dark.svg" />
-    <img alt="lines of code by language" width="49%" align="top"
+    <img alt="lines committed this year by language" width="49%" align="top"
          src="https://raw.githubusercontent.com/jakedamico/jakedamico/output/loc-languages.svg" />
   </picture>
   <picture>
     <source media="(prefers-color-scheme: dark)"
             srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/loc-projects-dark.svg" />
-    <img alt="largest projects by lines" width="49%" align="top"
+    <img alt="top projects this year by lines committed" width="49%" align="top"
          src="https://raw.githubusercontent.com/jakedamico/jakedamico/output/loc-projects.svg" />
   </picture>
 </p>

@@ -1,14 +1,16 @@
-// Counts lines of code across every repo I own (private included) and draws
-// the two README panels — "lines of code" by language, and largest projects —
-// as ascii-bar SVGs in the jakedami.co style (monospace, lowercase, mono
-// palette, light/dark variants).
+// Counts lines of code COMMITTED THIS YEAR across every repo I own (private
+// included) and draws the two README panels — lines committed by language,
+// and top projects — as ascii-bar SVGs in the jakedami.co style (monospace,
+// lowercase, mono palette, light/dark variants).
 //
 //   node scripts/loc-stats.js
 //
 // Auth: GH_TOKEN env if set (CI: the METRICS_TOKEN PAT), else `gh auth token`.
-// Shallow-clones each repo to a temp dir, counts non-blank lines in known
-// code extensions with vendored/generated paths skipped, writes dist/*.svg
-// plus dist/loc-data.json for inspection.
+// Clones each repo (full history — shallow clones fake whole trees as
+// additions at the boundary), sums `git log --numstat` additions since
+// Jan 1 on the default branch: non-merge commits, bot authors skipped,
+// code extensions only, vendored/generated paths skipped. Writes dist/*.svg
+// plus ../loc-data.json for inspection.
 'use strict';
 const { execSync, execFileSync } = require('child_process');
 const fs = require('fs');
@@ -25,7 +27,6 @@ const SKIP_DIRS = new Set([
   'DerivedData', 'bower_components', '.idea', '.vscode', 'site-packages',
 ]);
 const SKIP_FILES = /(\.min\.(js|css)$|\.map$|-lock\.json$|^yarn\.lock$|^pnpm-lock\.yaml$|^Cargo\.lock$|^poetry\.lock$|^Gemfile\.lock$|^composer\.lock$)/;
-const MAX_FILE_BYTES = 2 * 1024 * 1024; // bigger text files are data, not code
 
 const EXT_LANG = {
   js: 'javascript', mjs: 'javascript', cjs: 'javascript', jsx: 'javascript',
@@ -58,31 +59,37 @@ async function listRepos(tok) {
   return repos.filter(r => !r.fork && !r.archived && !EXCLUDE_REPOS.has(r.name));
 }
 
-function countDir(dir, into) {
-  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (ent.isDirectory()) {
-      if (!SKIP_DIRS.has(ent.name)) countDir(path.join(dir, ent.name), into);
-      continue;
-    }
-    if (!ent.isFile() || SKIP_FILES.test(ent.name)) continue;
-    const ext = path.extname(ent.name).slice(1).toLowerCase();
-    const lang = EXT_LANG[ext];
+const BOT_AUTHOR = /\[bot\]|dependabot|github-actions/i;
+
+// numstat paths under rename detection: "src/{old => new}/f.js" or "a => b".
+function renamedPath(p) {
+  if (p.includes('{')) return p.replace(/\{[^}]* => ([^}]*)\}/g, '$1').replace(/\/\//g, '/');
+  const m = p.match(/^.* => (.*)$/);
+  return m ? m[1] : p;
+}
+
+function skippedPath(p) {
+  return p.split('/').some(seg => SKIP_DIRS.has(seg)) ||
+    SKIP_FILES.test(path.posix.basename(p));
+}
+
+// Sum additions per language from the default branch's log since `since`.
+function countLog(dir, since, into) {
+  const raw = execFileSync('git', [
+    '-C', dir, 'log', `--since=${since}`, '--no-merges', '-M',
+    '--numstat', '--format=%x01%an',
+  ], { encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 });
+  let skipCommit = false;
+  for (const line of raw.split('\n')) {
+    if (line.charCodeAt(0) === 1) { skipCommit = BOT_AUTHOR.test(line.slice(1)); continue; }
+    if (skipCommit || !line) continue;
+    const [added, , file] = line.split('\t');
+    if (!file || added === '-') continue; // binary
+    const p = renamedPath(file);
+    if (skippedPath(p)) continue;
+    const lang = EXT_LANG[path.posix.extname(p).slice(1).toLowerCase()];
     if (!lang) continue;
-    const fp = path.join(dir, ent.name);
-    let stat;
-    try { stat = fs.statSync(fp); } catch { continue; }
-    if (stat.size > MAX_FILE_BYTES || stat.size === 0) continue;
-    const buf = fs.readFileSync(fp);
-    if (buf.subarray(0, 8192).includes(0)) continue; // binary
-    let lines = 0;
-    const s = buf.toString('utf8');
-    for (let i = 0; i < s.length;) {
-      let j = s.indexOf('\n', i);
-      if (j === -1) j = s.length;
-      if (s.slice(i, j).trim()) lines++;
-      i = j + 1;
-    }
-    into[lang] = (into[lang] || 0) + lines;
+    into[lang] = (into[lang] || 0) + Number(added);
   }
 }
 
@@ -175,11 +182,15 @@ function footRow(text) {
 (async () => {
   const tok = token();
   const repos = await listRepos(tok);
-  console.log(`counting ${repos.length} repos…`);
+  const year = new Date().getFullYear();
+  const since = `${year}-01-01T00:00:00Z`;
+  console.log(`counting ${repos.length} repos, commits since ${since}…`);
 
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'loc-'));
-  const byRepo = {};   // repo -> {lang: lines}
+  const byRepo = {};   // repo -> {lang: lines added this year}
   for (const r of repos) {
+    // cheap pre-check: skip repos with no commits this year before cloning
+    if (r.pushed_at && r.pushed_at < since) { console.log(`  ${r.name}: 0 (untouched)`); continue; }
     const dest = path.join(work, r.name);
     try {
       execFileSync('git', [
@@ -187,8 +198,8 @@ function footRow(text) {
         // credential manager must NOT store this token identity — it would
         // register x-access-token as a second github.com account and make
         // every local git operation pop an account-picker dialog.
-        'clone', '--depth', '1', '--quiet', '-c', 'core.longpaths=true',
-        '-c', 'credential.helper=',
+        'clone', '--quiet', '-c', 'core.longpaths=true',
+        '-c', 'credential.helper=', '--single-branch',
         `https://x-access-token:${tok}@github.com/${OWNER}/${r.name}.git`, dest,
       ], { stdio: ['ignore', 'ignore', 'pipe'], env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
     } catch (e) {
@@ -196,7 +207,7 @@ function footRow(text) {
       continue;
     }
     const langs = {};
-    countDir(dest, langs);
+    countLog(dest, since, langs);
     const total = Object.values(langs).reduce((a, b) => a + b, 0);
     if (total > 0) byRepo[r.name] = langs;
     console.log(`  ${r.name}: ${fmt(total)}`);
@@ -221,18 +232,18 @@ function footRow(text) {
   // language panel
   const maxLang = top[0][1];
   const langRows = [
-    titleRow('lines of code', ' · by language, every repo'),
+    titleRow('lines committed', ` · ${year}, by language`),
     blank(),
     ...top.map(([l, n]) => itemRow(l, 12, n / maxLang, fmt(n), Math.round(100 * n / grand) + '%')),
     blank(),
-    footRow(`total ${fmt(grand)} lines · ${Object.keys(byRepo).length} repos`),
+    footRow(`total ${fmt(grand)} lines committed in ${year} · ${Object.keys(byRepo).length} repos`),
   ];
 
   // projects panel
   const maxProj = projects[0][1];
   const privCount = repos.filter(r => r.private && byRepo[r.name]).length;
   const projRows = [
-    titleRow('largest projects', ' · by lines'),
+    titleRow('top projects', ` · ${year}, by lines committed`),
     blank(),
     ...projects.map(([name, n]) => itemRow(name.toLowerCase(), 16, n / maxProj, fmt(n), null)),
     blank(),
