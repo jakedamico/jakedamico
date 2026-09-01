@@ -74,14 +74,20 @@ function skippedPath(p) {
 }
 
 // Sum additions per language from the default branch's log since `since`.
+// Returns the number of (non-merge, non-bot) commits seen.
 function countLog(dir, since, into) {
   const raw = execFileSync('git', [
     '-C', dir, 'log', `--since=${since}`, '--no-merges', '-M',
     '--numstat', '--format=%x01%an',
   ], { encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 });
   let skipCommit = false;
+  let commits = 0;
   for (const line of raw.split('\n')) {
-    if (line.charCodeAt(0) === 1) { skipCommit = BOT_AUTHOR.test(line.slice(1)); continue; }
+    if (line.charCodeAt(0) === 1) {
+      skipCommit = BOT_AUTHOR.test(line.slice(1));
+      if (!skipCommit) commits++;
+      continue;
+    }
     if (skipCommit || !line) continue;
     const [added, , file] = line.split('\t');
     if (!file || added === '-') continue; // binary
@@ -91,6 +97,7 @@ function countLog(dir, since, into) {
     if (!lang) continue;
     into[lang] = (into[lang] || 0) + Number(added);
   }
+  return commits;
 }
 
 // ── rendering ──────────────────────────────────────────────────────────────
@@ -188,6 +195,7 @@ function footRow(text) {
 
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'loc-'));
   const byRepo = {};   // repo -> {lang: lines added this year}
+  let totalCommits = 0;
   for (const r of repos) {
     // cheap pre-check: skip repos with no commits this year before cloning
     if (r.pushed_at && r.pushed_at < since) { console.log(`  ${r.name}: 0 (untouched)`); continue; }
@@ -207,10 +215,11 @@ function footRow(text) {
       continue;
     }
     const langs = {};
-    countLog(dest, since, langs);
+    const commits = countLog(dest, since, langs);
+    totalCommits += commits;
     const total = Object.values(langs).reduce((a, b) => a + b, 0);
     if (total > 0) byRepo[r.name] = langs;
-    console.log(`  ${r.name}: ${fmt(total)}`);
+    console.log(`  ${r.name}: ${fmt(total)} (${commits} commits)`);
     fs.rmSync(dest, { recursive: true, force: true });
   }
   fs.rmSync(work, { recursive: true, force: true });
@@ -236,7 +245,7 @@ function footRow(text) {
     blank(),
     ...top.map(([l, n]) => itemRow(l, 12, n / maxLang, fmt(n), Math.round(100 * n / grand) + '%')),
     blank(),
-    footRow(`total ${fmt(grand)} lines committed in ${year} · ${Object.keys(byRepo).length} repos`),
+    footRow(`total ${fmt(grand)} lines · ${totalCommits} commits · ${Object.keys(byRepo).length} repos`),
   ];
 
   // projects panel
@@ -259,7 +268,7 @@ function footRow(text) {
   // debug data stays OUT of dist — dist is published, and this lists every
   // repo by name, not just the top 8 the panels show
   fs.writeFileSync(path.join(__dirname, '..', 'loc-data.json'),
-    JSON.stringify({ generated: new Date().toISOString(), byLang, byRepo: Object.fromEntries(
+    JSON.stringify({ generated: new Date().toISOString(), totalCommits, byLang, byRepo: Object.fromEntries(
       Object.entries(byRepo).map(([k, v]) => [k, Object.values(v).reduce((a, b) => a + b, 0)])) }, null, 2));
   console.log(`done — ${fmt(grand)} lines across ${Object.keys(byRepo).length} repos`);
 })().catch((e) => { console.error(e); process.exit(1); });
