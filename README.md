@@ -8,14 +8,15 @@
   <img src="hero.gif" alt="pink panther" width="900">
 </p>
 
-<!-- "building stuff" with the site's blinking cursor.
+<!-- "building stuff" types out once, then the _ blinks forever —
+     same as the site. self-hosted SMIL svgs, no external service;
      two variants so the text color follows github's theme. -->
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)"
-            srcset="https://readme-typing-svg.demolab.com/?font=JetBrains+Mono&weight=400&size=24&duration=2200&pause=900&color=F2F2F2&background=00000000&center=true&vCenter=true&width=320&height=48&lines=building+stuff" />
-    <img alt="building stuff_"
-         src="https://readme-typing-svg.demolab.com/?font=JetBrains+Mono&weight=400&size=24&duration=2200&pause=900&color=1C1A17&background=00000000&center=true&vCenter=true&width=320&height=48&lines=building+stuff" />
+            srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/main/typing-dark.svg" />
+    <img alt="building stuff_" width="320"
+         src="https://raw.githubusercontent.com/jakedamico/jakedamico/main/typing.svg" />
   </picture>
 </p>
 
