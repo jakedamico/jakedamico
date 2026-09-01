@@ -1,24 +1,30 @@
 <!-- =========================================================
      jakedamico · github profile readme
-     monochrome + pink accents · stealth founder
+     matches jakedami.co ascii theme — monospace, lowercase,
+     blinking cursor. pink panther stays.
      ========================================================= -->
 
 <p align="center">
   <img src="hero.gif" alt="pink panther" width="900">
 </p>
 
-<h1 align="center">
-  building stuff
-</h1>
+<!-- "building stuff" with the site's blinking cursor.
+     two variants so the text color follows github's theme. -->
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)"
+            srcset="https://readme-typing-svg.demolab.com/?font=JetBrains+Mono&weight=400&size=24&duration=2200&pause=900&color=F2F2F2&background=00000000&center=true&vCenter=true&width=320&height=48&lines=building+stuff" />
+    <img alt="building stuff_"
+         src="https://readme-typing-svg.demolab.com/?font=JetBrains+Mono&weight=400&size=24&duration=2200&pause=900&color=1C1A17&background=00000000&center=true&vCenter=true&width=320&height=48&lines=building+stuff" />
+  </picture>
+</p>
 
 <p align="center">
-  <a href="https://www.linkedin.com/in/jakedamico/">
-    <img src="https://img.shields.io/badge/LinkedIn-000000?style=for-the-badge&logo=linkedin&logoColor=E91E63" alt="LinkedIn">
-  </a>
-  &nbsp;
-  <a href="https://www.instagram.com/jakedamico/">
-    <img src="https://img.shields.io/badge/Instagram-000000?style=for-the-badge&logo=instagram&logoColor=E91E63" alt="Instagram">
-  </a>
+  <a href="https://jakedami.co"><code>jakedami.co</code></a>
+  &nbsp;·&nbsp;
+  <a href="https://www.linkedin.com/in/jacobdamico/"><code>linkedin</code></a>
+  &nbsp;·&nbsp;
+  <a href="https://www.instagram.com/jaked.amico/"><code>instagram</code></a>
 </p>
 
 <br/>
@@ -33,18 +39,4 @@
           srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/snake.svg" />
   <img alt="snake animation"
        src="https://raw.githubusercontent.com/jakedamico/jakedamico/output/snake.svg" />
-</picture>
-
-<br/><br/>
-
-<!-- =========================================================
-     lines of code — added vs removed across all repos
-     ========================================================= -->
-<picture>
-  <source media="(prefers-color-scheme: dark)"
-          srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/lines-dark.svg" />
-  <source media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
-          srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/output/lines.svg" />
-  <img alt="lines of code across all projects"
-       src="https://raw.githubusercontent.com/jakedamico/jakedamico/output/lines.svg" />
 </picture>
