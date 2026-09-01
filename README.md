@@ -8,17 +8,15 @@
   <img src="hero.gif" alt="pink panther" width="900">
 </p>
 
-<!-- the jakedami.co ascii field, baked into a self-animating svg:
-     domain-warped noise on a char ramp, drifting on a ping-pong
-     crossfade loop, parting around "building stuff" — which types
-     out once and leaves the _ blinking, same as the site.
-     regenerate with: node scripts/gen-ascii-field.js -->
+<!-- "building stuff" types out once, then the _ blinks forever —
+     same as the site. self-hosted SMIL svgs, no external service;
+     two variants so the text color follows github's theme. -->
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)"
-            srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/main/ascii-field-dark.svg" />
-    <img alt="ascii field — building stuff_" width="900"
-         src="https://raw.githubusercontent.com/jakedamico/jakedamico/main/ascii-field.svg" />
+            srcset="https://raw.githubusercontent.com/jakedamico/jakedamico/main/typing-dark.svg" />
+    <img alt="building stuff_" width="320"
+         src="https://raw.githubusercontent.com/jakedamico/jakedamico/main/typing.svg" />
   </picture>
 </p>
 
