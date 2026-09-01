@@ -1,0 +1,28 @@
+name: Lines of Code
+on:
+  schedule: [{ cron: "0 6 * * *" }]  # daily, offset from the snake run
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+    paths: [ "scripts/loc-stats.js", ".github/workflows/loc.yml" ]
+permissions:
+  contents: write
+jobs:
+  loc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Count and render
+        run: node scripts/loc-stats.js
+        env:
+          # PAT with repo scope — needed to list and clone private repos
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
+      - name: Publish to output branch
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          target_branch: output
+          build_dir: dist
+          # don't wipe what other workflows publish here (snake svgs)
+          keep_history: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

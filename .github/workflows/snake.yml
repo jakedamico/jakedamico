@@ -32,5 +32,7 @@ jobs:
         with:
           target_branch: output
           build_dir: dist
+          # don't wipe what other workflows publish here (loc panels)
+          keep_history: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
