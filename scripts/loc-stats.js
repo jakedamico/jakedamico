@@ -183,7 +183,12 @@ function footRow(text) {
     const dest = path.join(work, r.name);
     try {
       execFileSync('git', [
+        // credential.helper= (empty): creds come from the URL, and the OS
+        // credential manager must NOT store this token identity — it would
+        // register x-access-token as a second github.com account and make
+        // every local git operation pop an account-picker dialog.
         'clone', '--depth', '1', '--quiet', '-c', 'core.longpaths=true',
+        '-c', 'credential.helper=',
         `https://x-access-token:${tok}@github.com/${OWNER}/${r.name}.git`, dest,
       ], { stdio: ['ignore', 'ignore', 'pipe'], env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
     } catch (e) {
