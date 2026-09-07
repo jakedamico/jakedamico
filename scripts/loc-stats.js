@@ -1,16 +1,20 @@
 // Counts lines of code COMMITTED THIS YEAR across every repo I own (private
-// included) and draws the two README panels — lines committed by language,
-// and top projects — as ascii-bar SVGs in the jakedami.co style (monospace,
-// lowercase, mono palette, light/dark variants).
+// included), plus lines from my merged PRs into repos I DON'T own, and draws
+// the two README panels — lines committed by language, and top projects —
+// as ascii-bar SVGs in the jakedami.co style (monospace, lowercase, mono
+// palette, light/dark variants).
 //
 //   node scripts/loc-stats.js
 //
 // Auth: GH_TOKEN env if set (CI: the METRICS_TOKEN PAT), else `gh auth token`.
-// Clones each repo (full history — shallow clones fake whole trees as
+// Clones each owned repo (full history — shallow clones fake whole trees as
 // additions at the boundary), sums `git log --numstat` additions since
 // Jan 1 on the default branch: non-merge commits, bot authors skipped,
-// code extensions only, vendored/generated paths skipped. Writes dist/*.svg
-// plus ../loc-data.json for inspection.
+// code extensions only, vendored/generated paths skipped.
+// Separately, searches for PRs I authored that were merged this year into
+// repos I don't own (unmerged branches never count — there's nothing to
+// find until GitHub records a merge) and sums each PR's file diff the same
+// way. Writes dist/*.svg plus ../loc-data.json for inspection.
 'use strict';
 const { execSync, execFileSync } = require('child_process');
 const fs = require('fs');
@@ -57,6 +61,49 @@ async function listRepos(tok) {
     if (batch.length < 100) break;
   }
   return repos.filter(r => !r.fork && !r.archived && !EXCLUDE_REPOS.has(r.name));
+}
+
+async function ghJSON(url, tok) {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${tok}`, 'User-Agent': OWNER } });
+  if (!res.ok) throw new Error(`${url} failed: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+function repoFromUrl(url) {
+  const [, owner, repo] = url.match(/repos\/([^/]+)\/([^/]+)$/);
+  return { owner, repo };
+}
+
+// PRs I authored, merged since `since`, in repos I don't own — my own repos
+// are already fully covered by the git log scan above.
+async function listExternalMergedPRs(tok, since) {
+  const q = `is:pr is:merged author:${OWNER} merged:>=${since.slice(0, 10)}`;
+  const items = [];
+  for (let page = 1; ; page++) {
+    const data = await ghJSON(
+      `https://api.github.com/search/issues?q=${encodeURIComponent(q)}&per_page=100&page=${page}`, tok);
+    items.push(...data.items);
+    if (data.items.length < 100) break;
+  }
+  return items
+    .map((pr) => ({ pr, ...repoFromUrl(pr.repository_url) }))
+    .filter(({ owner }) => owner.toLowerCase() !== OWNER.toLowerCase());
+}
+
+// Sum additions per language from one PR's file list (works regardless of
+// merge/squash/rebase strategy since it's a base...head diff).
+async function countPRFiles(owner, repo, number, tok, into) {
+  for (let page = 1; ; page++) {
+    const files = await ghJSON(
+      `https://api.github.com/repos/${owner}/${repo}/pulls/${number}/files?per_page=100&page=${page}`, tok);
+    for (const f of files) {
+      if (skippedPath(f.filename)) continue;
+      const lang = EXT_LANG[path.posix.extname(f.filename).slice(1).toLowerCase()];
+      if (!lang) continue;
+      into[lang] = (into[lang] || 0) + (f.additions || 0);
+    }
+    if (files.length < 100) break;
+  }
 }
 
 const BOT_AUTHOR = /\[bot\]|dependabot|github-actions/i;
@@ -224,6 +271,27 @@ function footRow(text) {
   }
   fs.rmSync(work, { recursive: true, force: true });
 
+  // merged PRs into repos I don't own
+  const externalRepoPrivate = {};
+  const externalPRs = await listExternalMergedPRs(tok, since);
+  console.log(`found ${externalPRs.length} merged PR(s) in repos I don't own`);
+  for (const { pr, owner, repo } of externalPRs) {
+    const langs = byRepo[repo] || {};
+    try {
+      await countPRFiles(owner, repo, pr.number, tok, langs);
+      if (!(repo in externalRepoPrivate)) {
+        const meta = await ghJSON(`https://api.github.com/repos/${owner}/${repo}`, tok);
+        externalRepoPrivate[repo] = meta.private;
+      }
+    } catch (e) {
+      console.error(`  ${owner}/${repo}#${pr.number} failed: ${e.message}`);
+      continue;
+    }
+    byRepo[repo] = langs;
+    const total = Object.values(langs).reduce((a, b) => a + b, 0);
+    console.log(`  ${owner}/${repo}#${pr.number}: ${fmt(total)} running total`);
+  }
+
   const byLang = {};
   for (const langs of Object.values(byRepo))
     for (const [l, n] of Object.entries(langs)) byLang[l] = (byLang[l] || 0) + n;
@@ -250,7 +318,8 @@ function footRow(text) {
 
   // projects panel
   const maxProj = projects[0][1];
-  const privCount = repos.filter(r => r.private && byRepo[r.name]).length;
+  const privCount = repos.filter(r => r.private && byRepo[r.name]).length +
+    Object.values(externalRepoPrivate).filter(Boolean).length;
   const projRows = [
     titleRow('top projects', ` · ${year}, by lines committed`),
     blank(),
